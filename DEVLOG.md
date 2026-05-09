@@ -22,7 +22,7 @@
 
 ## Day 2 — 2026-05-08
 
-**Hours worked:** 6
+**Hours worked:** 3
 
 **What I did:**
 - Built complete spend input form for all 8 AI tools
@@ -54,3 +54,38 @@
 - Calculate per-tool savings recommendations
 - Write 5+ automated tests
 - Set up GitHub Actions CI
+
+
+
+## Day 3 - 2026-05-09 
+Hours worked: 3
+
+What I did:
+- Built complete audit engine with hardcoded rules
+  * Created PRICING_DATA.md with all sources
+  * Implemented auditTool() function for individual tool analysis
+  * Implemented runFullAudit() for complete audit
+  * Added 6 rule types: seat optimization, enterprise overkill, spend correction, free tier, alternatives, optimal detection
+- Wrote 10 automated tests (exceeding 5 required)
+  * Tests cover: plan optimization, pricing calculation, free tier, unknown tools, high savings
+- Set up Vitest testing framework
+- Created GitHub Actions CI pipeline for automated testing
+- Added getSavingsPercentage() helper
+
+What I learned:
+- Hardcoded rules are more reliable than AI for pricing math
+- Testing first (TDD) helps catch edge cases early
+- GitHub Actions runs tests automatically on every push
+- Pricing data needs official sources for credibility
+
+Blockers / what I'm stuck on:
+- Need to integrate audit engine with form submission (Day 4)
+- Need results page to display savings beautifully
+- Need AI summary using Anthropic API
+
+Plan for tomorrow (Day 4):
+- Create results page (app/audit/[id]/page.tsx)
+- Display per-tool breakdown
+- Show total monthly/annual savings
+- Integrate AI-generated summary with fallback
+- Add conditional messaging (Credex for high savings)
