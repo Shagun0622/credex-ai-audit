@@ -27,6 +27,7 @@ jobs:
       run: npm run lint || true
     
     - name: Run tests
+<<<<<<< HEAD
       run: npm test
     
     - name: Build
@@ -37,3 +38,9 @@ jobs:
         NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || '' }}
         ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY || '' }}
         RESEND_API_KEY: ${{ secrets.RESEND_API_KEY || '' }}
+=======
+      run: npm run test
+    
+    - name: Build
+      run: npm run buid
+>>>>>>> 53a10b8 (feat: add audit engine with 10 tests, pricing data, and CI pipeline)
