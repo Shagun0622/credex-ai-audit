@@ -89,3 +89,47 @@ Plan for tomorrow (Day 4):
 - Show total monthly/annual savings
 - Integrate AI-generated summary with fallback
 - Add conditional messaging (Credex for high savings)
+
+## Day 4 — 2026-05-10
+
+**Hours worked:** 4-5
+
+**What I did:**
+- Fixed audit engine bugs — corrected per-tool downgrade pricing 
+  (GitHub Copilot was recommending $20 plan when individual is $10, 
+  causing negative savings shown as $0)
+- Fixed enterprise rule: added guard so engine doesn't show savings 
+  when currentSpend is already below recommendedSpend
+- Fixed redundancy detection: switched from name-based lookup to 
+  index-based to prevent duplicate tool label collision
+- Implemented real Anthropic API call in /api/generate-summary with 
+  graceful fallback to templated summary on API failure
+- Installed @anthropic-ai/sdk and configured ANTHROPIC_API_KEY in 
+  .env.local
+- Tested audit results page end-to-end with multiple tool combinations
+- Wrote and committed PROMPTS.md documenting full prompt history, 
+  what failed, model selection reasoning, and fallback strategy
+- Identified form bug: "Add tool" always defaults to Cursor — fix 
+  planned for tomorrow
+
+**What I learned:**
+- Hardcoded fallback prices break when applied across tools with 
+  different pricing structures. Per-tool config objects are safer 
+  than shared constants.
+- Enterprise plan users may report spend below standard rates 
+  (grandfathered pricing, trials). The engine must handle 
+  currentSpend < recommendedSpend without showing misleading savings.
+- Groq's free tier (14,400 req/day) is a better default than 
+  Anthropic for a free tool — lower latency, no cost at our scale.
+
+**Blockers / what I'm stuck on:**
+- Supabase lead capture not set up yet — email gate on results page 
+  currently does nothing on submit
+- Need to set up Resend for transactional email
+- Form still defaults new tools to Cursor instead of next unused tool
+
+**Plan for tomorrow:**
+- Fix the add-tool default bug in page.tsx
+- Set up Supabase: create leads table, wire up /api/capture-lead
+- Set up Resend: send confirmation email on lead capture
+- Deploy to Vercel — need live URL before deadline
