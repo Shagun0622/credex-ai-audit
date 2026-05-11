@@ -92,7 +92,7 @@ Plan for tomorrow (Day 4):
 
 ## Day 4 — 2026-05-10
 
-**Hours worked:** 4-5
+**Hours worked:** 3-4
 
 **What I did:**
 - Fixed audit engine bugs — corrected per-tool downgrade pricing 
@@ -133,3 +133,36 @@ Plan for tomorrow (Day 4):
 - Set up Supabase: create leads table, wire up /api/capture-lead
 - Set up Resend: send confirmation email on lead capture
 - Deploy to Vercel — need live URL before deadline
+
+*** Day 5 - 2026-05-11 ***
+Hours worked: 4
+
+What I did:
+- Set up Supabase (PostgreSQL) database for lead storage
+- Created leads table with schema: id, email, team_size, total_current_spend, total_savings, tool_count, audit_url, created_at
+- Added proper indexes and Row Level Security (RLS) policies
+- Built /api/capture-lead API endpoint with rate limiting (5 requests per minute per IP)
+- Integrated Resend for transactional emails (free tier: 3000 emails/month)
+- Created HTML email template for audit report confirmation
+- Updated results page to call capture API on email submission
+- Added lib/supabase.ts client for database operations
+- Fixed RLS policy issues (CREATE POLICY for inserts)
+- Tested complete flow: form → audit → email capture → database storage
+
+What I learned:
+- Supabase RLS policies need proper configuration for inserts (WITH CHECK true)
+- Environment variables must be set for both local (.env.local) and production (Vercel)
+- Rate limiting prevents API abuse (important for public endpoints)
+- Transactional emails need professional HTML formatting with brand colors
+- PostgreSQL indexes improve query performance for lead lookup
+
+Blockers / what I'm stuck on:
+- Need to deploy to Vercel with all environment variables
+- Need to add Open Graph tags for social sharing on shareable URLs
+- Need to write remaining documentation (REFLECTION.md, METRICS.md, etc.)
+
+Plan for tomorrow (Day 6):
+- Deploy to Vercel with environment variables
+- Add Open Graph tags for social media previews
+- Test deployed version end-to-end
+- Run Lighthouse scores and optimize if needed

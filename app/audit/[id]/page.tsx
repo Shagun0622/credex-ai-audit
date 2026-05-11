@@ -105,31 +105,45 @@ export default function AuditResultPage() {
     return `🚨 Significant savings found! Your ${data.teamSize}-person team could save $${results.totalSavings}/month ($${results.annualSavings}/year) by optimizing your AI tool stack. We found ${results.results.filter((r: any) => r.savings > 0).length} opportunities across ${data.tools.length} tools. ${results.hasHighSavings ? 'Book a consultation with Credex to capture even more savings.' : 'Review your personalized recommendations below.'}`;
   };
 
-  // Handle email capture
-  const handleEmailCapture = async () => {
-    if (!email) return;
-    
-    setIsEmailSending(true);
-    
-    try {
-      await fetch('/api/capture-lead', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email,
-          auditData,
-          auditResults,
-          url: window.location.href,
-        }),
-      });
-      setEmailSent(true);
-    } catch (error) {
-      console.error('Failed to save email', error);
-    } finally {
-      setIsEmailSending(false);
-    }
-  };
 
+const handleEmailCapture = async () => {
+  if (!email) return;
+  
+  setIsEmailSending(true);
+  
+  try {
+    console.log('Sending email for:', email);
+    console.log('Audit data:', auditData);
+    console.log('Audit results:', auditResults);
+    
+    const response = await fetch('/api/capture-lead', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email,
+        auditData,
+        auditResults,
+        url: window.location.href,
+      }),
+    });
+    
+    const data = await response.json();
+    console.log('Response:', data);
+    
+    if (response.ok) {
+      setEmailSent(true);
+      alert('Report sent! Check your inbox.');
+    } else {
+      console.error('Failed to save email:', data);
+      alert(`Failed to send report: ${data.error || 'Unknown error'}`);
+    }
+  } catch (error) {
+    console.error('Failed to save email', error);
+    alert('Network error. Please try again.');
+  } finally {
+    setIsEmailSending(false);
+  }
+};
   // Handle share
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href);
