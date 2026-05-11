@@ -134,7 +134,7 @@ Plan for tomorrow (Day 4):
 - Set up Resend: send confirmation email on lead capture
 - Deploy to Vercel — need live URL before deadline
 
-*** Day 5 - 2026-05-11 ***
+## Day 5 - 2026-05-11 
 Hours worked: 4
 
 What I did:
