@@ -166,3 +166,50 @@ Plan for tomorrow (Day 6):
 - Add Open Graph tags for social media previews
 - Test deployed version end-to-end
 - Run Lighthouse scores and optimize if needed
+
+## Day 6 - 2026-05-12 
+Hours worked: 5
+
+What I did:
+- Created embeddable widget (Bonus feature)
+  * Built /api/widget/route.ts endpoint
+  * Widget injects form into any website via script tag
+  * Supports Cursor, Copilot, ChatGPT, Claude tools
+  * Real-time savings calculation
+  * Professional styling with inline CSS
+
+- Implemented referral system (Bonus feature)
+  * Created lib/referral.ts with generateReferralCode(), getReferralCode()
+  * Built components/ReferralSection.tsx UI component
+  * Added referral detection on home page
+  * Integrated social sharing (Twitter/X, LinkedIn)
+  * Copy link functionality with toast notification
+  * 10% discount tracking for both parties
+
+- Added toast notifications
+  * Installed react-hot-toast
+  * Replaced all browser alert() with professional toasts
+  * Success, error, and info variants
+  * Custom styling for better UX
+
+- Replaced emojis with Lucide React icons
+  * Gift, Copy, Twitter, Link, Sparkles, Share2 icons
+  * Professional consistent iconography
+
+What I learned:
+- Widget requires careful inline styling to work on external sites
+- Referral codes need localStorage + URL params for persistence
+- Toast notifications provide much better UX than browser alerts
+- Lucide icons offer professional look compared to emojis
+
+Blockers / what I'm stuck on:
+- Need to deploy to Vercel with all environment variables
+- Need to complete user interviews (3 people)
+- Need to fill documentation (REFLECTION.md, GTM.md, ECONOMICS.md)
+
+Plan for tomorrow (Day 7):
+- Deploy to Vercel
+- Add all environment variables in Vercel dashboard
+- Complete 3 user interviews
+- Fill all remaining documentation
+- Final submission to Google Form
