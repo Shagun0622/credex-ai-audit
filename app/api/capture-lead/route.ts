@@ -1,20 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '@/lib/supabase';
 import { Resend } from 'resend';
 
-// Service role client — bypasses RLS, server-side only, never expose to client
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
-// Initialize Resend
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Initialize Resend (optional)
+const resend = process.env.RESEND_API_KEY 
+  ? new Resend(process.env.RESEND_API_KEY)
+  : null;
 
 // Rate limiting store (simple in-memory for demo)
 const rateLimit = new Map<string, { count: number; resetTime: number }>();
 
-// Rate limit configuration
 const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
 const RATE_LIMIT_MAX_REQUESTS = 5; // 5 requests per minute
 
@@ -43,10 +38,8 @@ function checkRateLimit(ip: string): boolean {
 
 export async function POST(request: NextRequest) {
   try {
-    // Get IP for rate limiting
     const ip = request.headers.get('x-forwarded-for') || 'unknown';
 
-    // Check rate limit
     if (!checkRateLimit(ip)) {
       return NextResponse.json(
         { error: 'Too many requests. Please try again later.' },
@@ -54,10 +47,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Parse request body
     const { email, auditData, auditResults, url } = await request.json();
 
-    // Validate email
     if (!email || !email.includes('@')) {
       return NextResponse.json(
         { error: 'Valid email is required' },
@@ -65,31 +56,30 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Save to Supabase
-    const { data, error: supabaseError } = await supabase
-      .from('leads')
-      .insert({
-        email: email,
-        company_name: auditData.companyName || null,
-        team_size: auditData.teamSize,
-        total_current_spend: auditResults.totalCurrentSpend,
-        total_savings: auditResults.totalSavings,
-        tool_count: auditData.tools.length,
-        audit_url: url,
-      })
-      .select()
-      .single();
+    // Only save to Supabase if client is available
+    if (supabase) {
+      const { data, error: supabaseError } = await supabase
+        .from('leads')
+        .insert({
+          email: email,
+          company_name: auditData.companyName || null,
+          team_size: auditData.teamSize,
+          total_current_spend: auditResults.totalCurrentSpend,
+          total_savings: auditResults.totalSavings,
+          tool_count: auditData.tools.length,
+          audit_url: url,
+        })
+        .select()
+        .single();
 
-    if (supabaseError) {
-      console.error('Supabase error:', supabaseError);
-      return NextResponse.json(
-        { error: 'Failed to save lead' },
-        { status: 500 }
-      );
+      if (supabaseError) {
+        console.error('Supabase error:', supabaseError);
+        // Don't fail the request, just log the error
+      }
     }
 
-    // Send confirmation email (if Resend API key exists)
-    if (process.env.RESEND_API_KEY) {
+    // Send confirmation email only if Resend is configured
+    if (resend) {
       try {
         await resend.emails.send({
           from: 'AI Spend Audit <onboarding@resend.dev>',
@@ -117,17 +107,14 @@ export async function POST(request: NextRequest) {
                 <div class="content">
                   <h2>Your Audit Results</h2>
                   <p>Based on your ${auditData.teamSize}-person team using ${auditData.tools.length} AI tools:</p>
-
                   <p class="savings">Potential Savings: $${auditResults.totalSavings}/month</p>
                   <p class="savings">$${auditResults.annualSavings}/year</p>
-
                   <h3>Next Steps:</h3>
                   <ul>
                     <li>Review the per-tool recommendations in your report</li>
                     ${auditResults.hasHighSavings ? '<li>Book a consultation with Credex for discounted credits</li>' : ''}
                     <li>Share this report with your team</li>
                   </ul>
-
                   <p style="margin-top: 30px;">
                     <a href="${url}" class="button">View Your Full Report</a>
                   </p>
@@ -143,14 +130,12 @@ export async function POST(request: NextRequest) {
         });
       } catch (emailError) {
         console.error('Email send error:', emailError);
-        // Don't fail the request if email fails
       }
     }
 
     return NextResponse.json({
       success: true,
       message: 'Lead captured successfully',
-      leadId: data.id,
     });
 
   } catch (error) {
