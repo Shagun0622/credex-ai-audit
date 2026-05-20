@@ -27,6 +27,7 @@ import { runFullAudit, ToolInput } from '@/lib/audit-engine';
 // Import benchmark
 import { runBenchmark } from '@/lib/benchmark-engine';
 
+import { getPricingSnapshot } from '@/lib/pricing-snapshot';
 // Types
 interface AuditData {
   tools: ToolInput[];
@@ -112,46 +113,64 @@ export default function AuditResultPage() {
 
   // Handle email capture
   const handleEmailCapture = async () => {
-    if (!email) return;
-
-    setIsEmailSending(true);
-
-    try {
-      const response = await fetch('/api/capture-lead', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email,
-          auditData,
-          auditResults,
-          url: window.location.href,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setEmailSent(true);
-        toast.success('Report sent! Check your inbox.', {
-          duration: 5000,
-          position: 'top-right',
-          icon: '📧',
-        });
-      } else {
-        toast.error(`Failed to send: ${data.error || 'Unknown error'}`, {
-          duration: 4000,
-          position: 'top-right',
-        });
-      }
-    } catch (error) {
-      toast.error('Network error. Please try again.', {
-        duration: 4000,
-        position: 'top-right',
-      });
-    } finally {
-      setIsEmailSending(false);
+  if (!email) return;
+  
+  setIsEmailSending(true);
+  
+  try {
+    const response = await fetch('/api/capture-lead', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email,
+        auditData,
+        auditResults,
+        url: window.location.href,
+      }),
+    });
+    
+    const data = await response.json();
+    
+    if (response.ok) {
+      setEmailSent(true);
+      toast.success('Report sent! Check your inbox.');
+      
+      // SAVE AUDIT TO DATABASE HERE
+      await saveAuditToDatabase(email);
+      
+    } else {
+      toast.error(`Failed to send: ${data.error || 'Unknown error'}`);
     }
-  };
+  } catch (error) {
+    toast.error('Network error. Please try again.');
+  } finally {
+    setIsEmailSending(false);
+  }
+};
+  // Save audit to database when email is captured
+const saveAuditToDatabase = async (userEmail: string) => {
+  try {
+    const pricingSnapshot = getPricingSnapshot();
+    
+    const response = await fetch('/api/save-audit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        auditId: id,  // The same ID from URL
+        email: userEmail,
+        inputStack: auditData,
+        outputResult: auditResults,
+        pricingSnapshot: pricingSnapshot,
+      }),
+    });
+    
+    if (!response.ok) {
+      console.error('Failed to save audit to database');
+    }
+  } catch (error) {
+    console.error('Error saving audit:', error);
+  }
+};
   // Handle CSV Export
 const downloadCSV = () => {
   // Create CSV headers
