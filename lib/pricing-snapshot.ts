@@ -1,4 +1,3 @@
-
 export function getPricingSnapshot(): any {
   return {
     cursor: { hobby: 0, pro: 20, business: 40, enterprise: 'custom' },

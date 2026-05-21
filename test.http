@@ -1,0 +1,22 @@
+### Step 1: Save baseline
+POST http://localhost:3000/api/check-pricing-changes
+Authorization: Bearer Shagun
+
+###
+
+
+### Step 2: Get all changes
+GET http://localhost:3000/api/check-pricing-changes
+
+###
+
+### Test leads capture
+POST http://localhost:3000/api/capture-lead
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "auditData": { "teamSize": 1, "tools": ["cursor"], "companyName": "Test" },
+  "auditResults": { "totalCurrentSpend": 95, "totalSavings": 30, "annualSavings": 360, "hasHighSavings": true },
+  "url": "http://localhost:3000/audit/test"
+}
