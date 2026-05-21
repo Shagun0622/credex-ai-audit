@@ -1,9 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
 
+// Server-only Supabase client using service role key (bypasses RLS)
+// Never use SUPABASE_SERVICE_ROLE_KEY in client-side code or NEXT_PUBLIC_ variables
+const getServiceSupabase = () => {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) return null;
+  return createClient(url, key);
+};
+
 // Initialize Resend (optional)
-const resend = process.env.RESEND_API_KEY 
+const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
   : null;
 
@@ -11,7 +20,7 @@ const resend = process.env.RESEND_API_KEY
 const rateLimit = new Map<string, { count: number; resetTime: number }>();
 
 const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
-const RATE_LIMIT_MAX_REQUESTS = 5; // 5 requests per minute
+const RATE_LIMIT_MAX_REQUESTS = 5;   // 5 requests per minute
 
 function checkRateLimit(ip: string): boolean {
   const now = Date.now();
@@ -56,26 +65,31 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Only save to Supabase if client is available
+    // Use service-role client to bypass RLS
+    const supabase = getServiceSupabase();
+
     if (supabase) {
-      const { data, error: supabaseError } = await supabase
+      const { error: supabaseError } = await supabase
         .from('leads')
-        .insert({
-          email: email,
-          company_name: auditData.companyName || null,
-          team_size: auditData.teamSize,
-          total_current_spend: auditResults.totalCurrentSpend,
-          total_savings: auditResults.totalSavings,
-          tool_count: auditData.tools.length,
-          audit_url: url,
-        })
-        .select()
-        .single();
+        .upsert(
+          {
+            email: email,
+            company_name: auditData.companyName || null,
+            team_size: auditData.teamSize,
+            total_current_spend: auditResults.totalCurrentSpend,
+            total_savings: auditResults.totalSavings,
+            tool_count: auditData.tools.length,
+            audit_url: url,
+          },
+          { onConflict: 'email' } // update existing lead if email already exists
+        );
 
       if (supabaseError) {
         console.error('Supabase error:', supabaseError);
-        // Don't fail the request, just log the error
+        // Non-fatal: log and continue so the user still gets their email
       }
+    } else {
+      console.warn('Supabase service role client not configured — skipping lead save.');
     }
 
     // Send confirmation email only if Resend is configured
