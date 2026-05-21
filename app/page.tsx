@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Sparkles, 
@@ -306,6 +307,10 @@ export default function Home() {
             <span className="text-base font-semibold tracking-tight text-[#0F0E0D]">AI Spend Audit</span>
           </div>
           <div className="flex items-center gap-6 text-sm text-[#6B6A66]">
+             <Link href="/pricing-changes" className="flex items-center gap-1 hover:text-[#1A3A6B] transition-colors">
+        <TrendingDown className="w-4 h-4" />
+        Pricing Changes
+      </Link>
             <span className="flex items-center gap-2"><Shield className="w-4 h-4" /> No signup required</span>
             <span className="flex items-center gap-2"><Zap className="w-4 h-4" /> Instant results</span>
             {showSaveIndicator && (
@@ -347,6 +352,8 @@ export default function Home() {
               ${totalSpend.toLocaleString()}
               <span className="text-lg font-normal text-[#8C8A86] ml-1">/mo</span>
             </p>
+            
+
           </div>
         </motion.div>
 
