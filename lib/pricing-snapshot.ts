@@ -1,6 +1,6 @@
 export function getPricingSnapshot(): any {
   return {
-    cursor: { hobby: 0, pro: 20, business: 40, enterprise: 'custom' },
+    cursor: { hobby: 0, pro: 40, business: 40, enterprise: 'custom' },
     'github-copilot': { individual: 10, business: 19, enterprise: 39 },
     claude: { free: 0, pro: 20, max: 50, team: 30, enterprise: 'custom', 'api-direct': 'usage' },
     chatgpt: { plus: 20, team: 30, enterprise: 'custom', 'api-direct': 'usage' },
