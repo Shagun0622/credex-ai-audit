@@ -4,11 +4,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { ArrowLeft, TrendingDown, DollarSign, CheckCircle2, AlertCircle } from 'lucide-react';
+import { ArrowLeft, TrendingDown, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
-import { supabase } from '@/lib/supabase';
+import { supabase, isSupabaseAvailable } from '@/lib/supabase';
 import { runFullAudit } from '@/lib/audit-engine';
-import {  getPricingSnapshot } from '@/lib/pricing-snapshot';
 
 interface AuditData {
   id: string;
@@ -36,6 +35,13 @@ export default function CompareAuditPage() {
       try {
         setLoading(true);
         
+        // Check if supabase is available
+        if (!isSupabaseAvailable() || !supabase) {
+          setError('Database connection not available');
+          setLoading(false);
+          return;
+        }
+        
         // 1. Fetch old audit from database
         const { data: oldData, error: oldError } = await supabase
           .from('audits')
@@ -52,15 +58,13 @@ export default function CompareAuditPage() {
         setOldAudit(oldData);
         
         // 2. Re-run audit with current pricing
-        const currentPricing = getPricingSnapshot();
         const newResults = runFullAudit(oldData.input_stack.tools);
         
         setNewAudit({
-          results: newResults,
+          results: newResults.results,
           totalCurrentSpend: newResults.totalCurrentSpend,
           totalSavings: newResults.totalSavings,
           annualSavings: newResults.annualSavings,
-          pricingSnapshot: currentPricing,
         });
         
       } catch (err) {
@@ -103,8 +107,8 @@ export default function CompareAuditPage() {
   }
   
   const oldResults = oldAudit.output_result;
-  const oldTotalSavings = oldResults.totalSavings;
-  const newTotalSavings = newAudit.totalSavings;
+  const oldTotalSavings = oldResults?.totalSavings || 0;
+  const newTotalSavings = newAudit?.totalSavings || 0;
   const savingsDelta = newTotalSavings - oldTotalSavings;
   
   return (
@@ -148,7 +152,7 @@ export default function CompareAuditPage() {
             {savingsDelta > 0 ? '🎉 YOU CAN SAVE MORE!' : savingsDelta < 0 ? '⚠️ SAVINGS DECREASED' : 'NO CHANGE IN SAVINGS'}
           </p>
           <p className="text-5xl font-bold text-[#0F0E0D] mb-2">
-            {savingsDelta > 0 ? '+' : ''}{savingsDelta > 0 ? savingsDelta : savingsDelta}
+            {savingsDelta > 0 ? '+' : ''}{savingsDelta}
             <span className="text-2xl font-normal text-[#8C8A86] ml-2">/month change</span>
           </p>
           <p className="text-[#6B6A66]">
@@ -167,12 +171,12 @@ export default function CompareAuditPage() {
             <div className="p-6">
               <div className="mb-4 p-3 bg-gray-50 rounded-lg">
                 <p className="text-sm text-[#8C8A86]">Total Savings</p>
-                <p className="text-2xl font-bold text-[#0F0E0D]">${oldResults.totalSavings}/month</p>
+                <p className="text-2xl font-bold text-[#0F0E0D]">${oldResults?.totalSavings || 0}/month</p>
               </div>
               
               <h3 className="font-semibold text-[#0F0E0D] mb-3">Per-Tool Recommendations</h3>
               <div className="space-y-3">
-                {oldResults.results?.map((result: any, index: number) => (
+                {oldResults?.results?.map((result: any, index: number) => (
                   <div key={index} className="border-b border-[#E2E0DB] pb-3 last:border-0">
                     <div className="flex justify-between items-start">
                       <span className="font-medium text-[#0F0E0D]">{result.toolName}</span>
@@ -200,14 +204,14 @@ export default function CompareAuditPage() {
               <div className={`mb-4 p-3 rounded-lg ${savingsDelta > 0 ? 'bg-green-50' : 'bg-gray-50'}`}>
                 <p className="text-sm text-[#8C8A86]">Total Savings</p>
                 <p className={`text-2xl font-bold ${savingsDelta > 0 ? 'text-green-700' : 'text-[#0F0E0D]'}`}>
-                  ${newAudit.totalSavings}/month
+                  ${newAudit?.totalSavings || 0}/month
                 </p>
               </div>
               
               <h3 className="font-semibold text-[#0F0E0D] mb-3">Updated Recommendations</h3>
               <div className="space-y-3">
-                {newAudit.results?.map((result: any, index: number) => {
-                  const oldResult = oldResults.results?.find((r: any) => r.toolName === result.toolName);
+                {newAudit?.results?.map((result: any, index: number) => {
+                  const oldResult = oldResults?.results?.find((r: any) => r.toolName === result.toolName);
                   const isDifferent = oldResult && (result.savings !== oldResult.savings || result.recommendedAction !== oldResult.recommendedAction);
                   
                   return (
