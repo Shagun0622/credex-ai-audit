@@ -7,7 +7,8 @@ import { motion } from 'framer-motion';
 import { ArrowLeft, TrendingDown, DollarSign, CheckCircle2, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
-import { runFullAudit, getPricingSnapshot } from '@/lib/pricing-snapshot';
+import { runFullAudit } from '@/lib/audit-engine';
+import {  getPricingSnapshot } from '@/lib/pricing-snapshot';
 
 interface AuditData {
   id: string;
